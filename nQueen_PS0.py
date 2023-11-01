@@ -4,9 +4,9 @@ import time
 import random
 
 PARAMETER_SETS = {
-    1: {"num_particles": 100, "num_iterations": 500, "w": 0.9, "c1": 1.2, "c2": 2.2},
-    2: {"num_particles": 150, "num_iterations": 600, "w": 0.8, "c1": 1.3, "c2": 2.1},
-    3: {"num_particles": 200, "num_iterations": 700, "w": 0.7, "c1": 1.4, "c2": 2.0}
+    1: {"num_particles": 50, "num_iterations": 500, "w": 0.9, "c1": 1.2, "c2": 2.2},
+    2: {"num_particles": 100, "num_iterations": 600, "w": 0.8, "c1": 1.3, "c2": 2.1},
+    3: {"num_particles": 150, "num_iterations": 700, "w": 0.7, "c1": 1.4, "c2": 2.0}
 }
 
 
@@ -104,11 +104,9 @@ def is_solution_valid(position):
     """Check if the given solution is valid for the N-Queens problem."""
     n = len(position)
 
-    # Check for row threats
+    # Check for row threats # Check for column threats (implicitly handled by the above check)
     if len(set(position)) != n:
         return False
-
-    # Check for column threats (implicitly handled by the above check)
 
     # Check for diagonal threats
     for i in range(n):
