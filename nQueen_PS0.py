@@ -10,7 +10,9 @@ PARAMETER_SETS = {
     3: {"num_particles": 150, "num_iterations": 700, "w": 0.7, "c1": 1.4, "c2": 2.0}
 }
 
-# Particle class represents a solution in the search space
+# Particle class represents a solution in the search space / population
+
+
 class Particle:
     def __init__(self, initial_position):
         self.position = initial_position.copy()
@@ -19,7 +21,9 @@ class Particle:
         self.best_position = np.copy(self.position)
         self.best_score = -float('inf')
 
-# Objective function to evaluate the quality of a solution
+# Objective function to evaluate the quality of a solution /fitness
+
+
 def objective_function(position):
     n = len(position)
     # Count column conflicts
@@ -33,6 +37,8 @@ def objective_function(position):
     return -(column_conflicts + diagonal_conflicts)
 
 # Local search function to improve a given solution
+
+
 def local_search(position):
     n = len(position)
     best_position = position.copy()
@@ -53,6 +59,8 @@ def local_search(position):
     return best_position
 
 # PSO algorithm implementation
+
+
 def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_position):
     best_solutions = []
     # Create a multiprocessing pool to parallelize objective function evaluations
@@ -66,9 +74,10 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
         # Initialize particles
         particles = [Particle(initial_position) for _ in range(num_particles)]
         # Determine the global best position
-        g_best_position = max(particles, key=lambda p: objective_function(p.position)).position.copy()
+        g_best_position = max(
+            particles, key=lambda p: objective_function(p.position)).position.copy()
         g_best_score = objective_function(g_best_position)
-        
+
         # Initialize previous_g_best_score
         previous_g_best_score = -float('inf')
 
@@ -82,11 +91,13 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
             w = INITIAL_W - current_iteration_fraction * (INITIAL_W - FINAL_W)
 
             # Evaluate the objective function for all particles
-            scores = pool.map(objective_function, [p.position for p in particles])
+            scores = pool.map(objective_function, [
+                              p.position for p in particles])
             for particle, score in zip(particles, scores):
                 # Update particle velocity and position
                 inertia = w * particle.velocity
-                personal_attraction = c1 * np.random.random() * (particle.best_position - particle.position)
+                personal_attraction = c1 * np.random.random() * (particle.best_position -
+                                                                 particle.position)
                 social_attraction = c2 * np.random.random() * (g_best_position - particle.position)
                 particle.velocity = inertia + personal_attraction + social_attraction
                 swap_idx1 = int(abs(particle.velocity[0]) % dimension)
@@ -115,7 +126,8 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
                     if np.random.rand() < 0.5:  # 50% chance to reinitialize a particle
                         particle.position = np.random.permutation(dimension)
                         particle.best_position = particle.position.copy()
-                        particle.best_score = objective_function(particle.position)
+                        particle.best_score = objective_function(
+                            particle.position)
                 no_improvement_counter = 0  # Reset the counter
 
         # After the iterations, apply local search for each particle's best position
@@ -135,6 +147,8 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
     return best_solutions
 
 # Function to check if a solution is valid for the N-Queens problem
+
+
 def is_solution_valid(position):
     n = len(position)
     # Check for row and column threats
@@ -149,79 +163,108 @@ def is_solution_valid(position):
                 return False
     return True
 
+
 # Main execution
 if __name__ == "__main__":
-    # Input board size
-    n = int(input("Enter the board size (n): "))
-    while n < 4:
-        print("Please enter a value for n that is greater than or equal to 4.")
-        n = int(input("Enter the board size (n): "))
+    # Input board size with validation
+    while True:
+        try:
+            n = int(input("Enter the board size (n): "))
+            if n < 4:
+                print("Board size must be 4 or greater.")
+            else:
+                break
+        except ValueError:
+            print("Invalid input. Please enter an integer.")
 
-    # Determine the number of runs based on the board size
     # Determine the number of runs based on the board size
     if 4 <= n <= 17:
         num_runs = 50
     elif n == 18:
-        num_runs = random.randint(50, 70)
+            num_runs = random.randint(50, 70)
     elif n == 20:
-        num_runs = random.randint(70, 90)
+            num_runs = random.randint(70, 90)
     elif n == 24:
-        num_runs = random.randint(90, 110)
+            num_runs = random.randint(90, 110)
     elif n == 30:
-        num_runs = random.randint(110, 130)
+            num_runs = random.randint(110, 130)
     elif n == 36:
-        num_runs = random.randint(130, 150)
+            num_runs = random.randint(130, 150)
     elif n == 48:
-        num_runs = random.randint(150, 200)
+            num_runs = random.randint(150, 200)
     elif n == 52:
-        num_runs = random.randint(200, 250)
+            num_runs = random.randint(200, 250)
     else:
-    # Default case for other board sizes
-        num_runs = random.randint(90, 110)
+            # Default case for other board sizes
+            num_runs = random.randint(90, 110)
+            
+    print(f"Number of time the algo will run to find multiple good solution is: {num_runs}")
+    # Input initial positions with validation
+    while True:
+        choice = input("Would you like to specify initial positions? (yes/no): ").strip().lower()
+        if choice not in ['yes', 'no']:
+            print("Invalid input. Please enter 'yes' or 'no'.")
+            continue
 
+        if choice == 'yes':
+            while True:
+                input_positions = input(f"Enter the initial positions for the {n} queens column-wise (separated by space): ")
+                try:
+                    initial_position = np.array(list(map(int, input_positions.split())))
+                    if len(initial_position) != n:
+                        print(f"Please enter exactly {n} positions.")
+                    elif not all(1 <= pos <= n for pos in initial_position):
+                        print(f"Positions must be between 1 and {n}.")
+                    else:
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter integers separated by spaces.")
+            break
+        else:
+            initial_position = np.arange(n)
+            np.random.shuffle(initial_position)
+            break
 
-    # Input initial positions
-    choice = input("Would you like to specify initial positions? (yes/no): ").lower()
-    if choice == 'yes':
-        initial_position = np.array(list(map(int, input(f"Enter the initial positions for the {n} queens column-wise: ").split())))
-        while len(initial_position) != n:
-            print(f"Please enter exactly {n} initial positions.")
-            initial_position = np.array(list(map(int, input(f"Enter the initial positions for the {n} queens column-wise: ").split())))
-    else:
-        initial_position = np.arange(1, n+1)  # Using 1-based indexing
-        np.random.shuffle(initial_position)
+    # Choose parameter set or input custom parameters with validation
+    while True:
+        print("Choose a parameter set:")
+        for key, value in PARAMETER_SETS.items():
+            print(f"{key}: {value}")
+        print("4: Custom input")
+        choice = input("Enter your choice (1/2/3/4): ").strip()
 
-    # Choose parameter set or input custom parameters
-    print("Choose a parameter set:")
-    print("1: ", PARAMETER_SETS[1])
-    print("2: ", PARAMETER_SETS[2])
-    print("3: ", PARAMETER_SETS[3])
-    print("4: Custom input")
-    choice = int(input("Enter your choice (1/2/3/4): "))
-
-    if choice in [1, 2, 3]:
-        params = PARAMETER_SETS[choice]
-        num_particles = params["num_particles"]
-        num_iterations = params["num_iterations"]
-        w = params["w"]
-        c1 = params["c1"]
-        c2 = params["c2"]
-    else:
-        num_particles = int(input("Enter number of particles: "))
-        num_iterations = int(input("Enter number of iterations: "))
-        w = float(input("Enter inertia weight (w): "))
-        c1 = float(input("Enter cognitive parameter (c1): "))
-        c2 = float(input("Enter social parameter (c2): "))
+        if choice in ['1', '2', '3']:
+            params = PARAMETER_SETS[int(choice)]
+            num_particles = params["num_particles"]
+            num_iterations = params["num_iterations"]
+            w = params["w"]
+            c1 = params["c1"]
+            c2 = params["c2"]
+            break
+        elif choice == '4':
+            try:
+                num_particles = int(input("Enter number of particles: "))
+                num_iterations = int(input("Enter number of iterations: "))
+                w = float(input("Enter inertia weight (w): "))
+                c1 = float(input("Enter cognitive parameter (c1): "))
+                c2 = float(input("Enter social parameter (c2): "))
+                break
+            except ValueError:
+                print("Invalid input. Please enter the correct type of value.")
+        else:
+            print("Invalid choice. Please enter 1, 2, 3, or 4.")
 
     # Run PSO and measure time taken
     start_time = time.time()
-    solutions = PSO(num_particles, n, num_iterations, w, c1, c2, num_runs, initial_position)
+    solutions = PSO(num_particles, n, num_iterations, w,
+                    c1, c2, num_runs, initial_position)
     end_time = time.time()
 
     # Display results
-    unique_solutions = set(tuple(sol) for sol in solutions if is_solution_valid(sol))
+    unique_solutions = {tuple(sol)
+                        for sol in solutions if is_solution_valid(sol)}
     for sol in unique_solutions:
-        print(np.array(sol) + 1)
-       
+        print("Solution:", np.array(sol) + 1)  # Adjust for 1-based indexing
+        
     print(f"\nNumber of unique solutions found: {len(unique_solutions)}")
-    print(f"\nTotal time taken: {(end_time - start_time)/60:.2f} minutes")
+    print(f"Total time taken: {(end_time - start_time)/60:.2f} minutes")
