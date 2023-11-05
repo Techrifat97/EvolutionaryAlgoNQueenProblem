@@ -11,8 +11,6 @@ PARAMETER_SETS = {
 }
 
 # Particle class represents a solution in the search space / population
-
-
 class Particle:
     def __init__(self, initial_position):
         self.position = initial_position.copy()
@@ -21,9 +19,7 @@ class Particle:
         self.best_position = np.copy(self.position)
         self.best_score = -float('inf')
 
-# Objective function to evaluate the quality of a solution /fitness
-
-
+# Objective function to evaluate the quality of a solution / fitness
 def objective_function(position):
     n = len(position)
     # Count column conflicts
@@ -31,14 +27,12 @@ def objective_function(position):
     diagonal_conflicts = 0
     # Count diagonal conflicts
     for i in range(n):
-        for j in range(i+1, n):
+        for j in range(i + 1, n):
             if position[i] - position[j] == i - j or position[j] - position[i] == i - j:
                 diagonal_conflicts += 1
     return -(column_conflicts + diagonal_conflicts)
 
 # Local search function to improve a given solution
-
-
 def local_search(position):
     n = len(position)
     best_position = position.copy()
@@ -59,10 +53,9 @@ def local_search(position):
     return best_position
 
 # PSO algorithm implementation
-
-
 def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_position):
     best_solutions = []
+   
     # Create a multiprocessing pool to parallelize objective function evaluations
     pool = Pool(processes=cpu_count())
 
@@ -73,6 +66,7 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
     for run in range(num_runs):
         # Initialize particles
         particles = [Particle(initial_position) for _ in range(num_particles)]
+        
         # Determine the global best position
         g_best_position = max(
             particles, key=lambda p: objective_function(p.position)).position.copy()
@@ -96,8 +90,7 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
             for particle, score in zip(particles, scores):
                 # Update particle velocity and position
                 inertia = w * particle.velocity
-                personal_attraction = c1 * np.random.random() * (particle.best_position -
-                                                                 particle.position)
+                personal_attraction = c1 * np.random.random() * (particle.best_position -  particle.position)
                 social_attraction = c2 * np.random.random() * (g_best_position - particle.position)
                 particle.velocity = inertia + personal_attraction + social_attraction
                 swap_idx1 = int(abs(particle.velocity[0]) % dimension)
@@ -147,8 +140,6 @@ def PSO(num_particles, dimension, num_iterations, w, c1, c2, num_runs, initial_p
     return best_solutions
 
 # Function to check if a solution is valid for the N-Queens problem
-
-
 def is_solution_valid(position):
     n = len(position)
     # Check for row and column threats
@@ -156,7 +147,7 @@ def is_solution_valid(position):
         return False
     # Check for diagonal threats
     for i in range(n):
-        for j in range(i+1, n):
+        for j in range(i + 1, n):
             if abs(position[i] - position[j]) == abs(i - j):  # Main diagonal threat
                 return False
             if position[i] + i == position[j] + j:  # Counter diagonal threat
@@ -176,29 +167,50 @@ if __name__ == "__main__":
                 break
         except ValueError:
             print("Invalid input. Please enter an integer.")
-
-    # Determine the number of runs based on the board size
-    if 4 <= n <= 17:
-        num_runs = 50
-    elif n == 18:
-            num_runs = random.randint(50, 70)
-    elif n == 20:
-            num_runs = random.randint(70, 90)
-    elif n == 24:
-            num_runs = random.randint(90, 110)
-    elif n == 30:
-            num_runs = random.randint(110, 130)
-    elif n == 36:
-            num_runs = random.randint(130, 150)
-    elif n == 48:
-            num_runs = random.randint(150, 200)
-    elif n == 52:
-            num_runs = random.randint(200, 250)
-    else:
-            # Default case for other board sizes
-            num_runs = random.randint(90, 110)
+# Determine the number of algorithm will runs based on the board size for generating multiple solutions
+    while True:
+        try:
+            choice = input("Do you want to specify the number of times you want the algorithm to run?\nThe higher the number the chance of gettting multiple solution increases:(yes/no): ").strip().lower()
+            if choice == 'yes':
+                while True:
+                    try:
+                        num_runs = int(input("Enter the number of runs: "))
+                        if num_runs <= 0:
+                            print("Number of runs must be a positive integer.")
+                        else:
+                            break
+                    except ValueError:
+                        print("Invalid input. Please enter a positive integer.")
+                break
+            elif choice == 'no':
+                if 4 <= n <= 17:
+                    num_runs = 50
+                elif n in [18, 20, 24, 30, 36, 48, 52]:
+                    # If n matches predefined board sizes, use random within specific ranges
+                    if n == 18:
+                        num_runs = random.randint(50, 70)
+                    elif n == 20:
+                        num_runs = random.randint(70, 90)
+                    elif n == 24:
+                        num_runs = random.randint(90, 110)
+                    elif n == 30:
+                        num_runs = random.randint(110, 130)
+                    elif n == 36:
+                        num_runs = random.randint(130, 150)
+                    elif n == 48:
+                        num_runs = random.randint(150, 200)
+                    elif n == 52:
+                        num_runs = random.randint(200, 250)
+                else:
+                    num_runs = random.randint(90, 110)  # Default case for other board sizes
+                break
+            else:
+                print("Invalid choice. Please enter 'yes' or 'no'.")
+        except ValueError:
+            print("Invalid input. Please enter a valid choice.")
             
-    print(f"Number of time the algo will run to find multiple good solution is: {num_runs}")
+    print(f"Number of times the algorithm will run to find multiple solutions is: {num_runs}")
+
     # Input initial positions with validation
     while True:
         choice = input("Would you like to specify initial positions? (yes/no): ").strip().lower()
@@ -225,7 +237,7 @@ if __name__ == "__main__":
             np.random.shuffle(initial_position)
             break
 
-    # Choose parameter set or input custom parameters with validation
+    # Choose a parameter set or input custom parameters with validation
     while True:
         print("Choose a parameter set:")
         for key, value in PARAMETER_SETS.items():
@@ -243,8 +255,8 @@ if __name__ == "__main__":
             break
         elif choice == '4':
             try:
-                num_particles = int(input("Enter number of particles: "))
-                num_iterations = int(input("Enter number of iterations: "))
+                num_particles = int(input("Enter the number of particles: "))
+                num_iterations = int(input("Enter the number of iterations: "))
                 w = float(input("Enter inertia weight (w): "))
                 c1 = float(input("Enter cognitive parameter (c1): "))
                 c2 = float(input("Enter social parameter (c2): "))
@@ -253,11 +265,9 @@ if __name__ == "__main__":
                 print("Invalid input. Please enter the correct type of value.")
         else:
             print("Invalid choice. Please enter 1, 2, 3, or 4.")
-
     # Run PSO and measure time taken
     start_time = time.time()
-    solutions = PSO(num_particles, n, num_iterations, w,
-                    c1, c2, num_runs, initial_position)
+    solutions = PSO(num_particles, n, num_iterations, w, c1, c2, num_runs, initial_position)
     end_time = time.time()
 
     # Display results
