@@ -29,7 +29,7 @@ def heuristic_initial_positions(n):
 
 # Function to get user input for initial positions or generate random positions
 def get_user_input(n):
-    choice = input("Do you want to input initial positions or use random initial positions? (yes/no): ").strip().lower()
+    choice = input("Do you want to input initial positions write (yes) or use (no) to use random initial positions? (yes/no): ").strip().lower()
     if choice == 'yes':
         while True:
             try:
