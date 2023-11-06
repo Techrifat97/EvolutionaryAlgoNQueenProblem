@@ -68,7 +68,43 @@ def local_search(chromosome, iterations=10):
         if new_fitness > current_fitness:
             chromosome, current_fitness = new_chromosome, new_fitness
     return chromosome
+# Repair function using the minimum-conflicts heuristic
+def repair(chromosome):
+    max_attempts = len(chromosome) ** 2
+    for _ in range(max_attempts):
+        conflicts = find_conflicts(chromosome)
+        if not conflicts:
+            break
+        queen = random.choice(conflicts)
+        min_conflict_pos = find_min_conflict(chromosome, queen)
+        chromosome[queen] = min_conflict_pos
+    return chromosome
 
+# Function to find queens with conflicts
+def find_conflicts(chromosome):
+    conflicts = []
+    for i in range(len(chromosome)):
+        for j in range(i + 1, len(chromosome)):
+            if chromosome[i] == chromosome[j] or abs(chromosome[i] - chromosome[j]) == j - i:
+                conflicts.append(i)
+                break
+    return conflicts
+
+# Function to find the position with the least conflicts for a queen
+def find_min_conflict(chromosome, queen):
+    positions = range(len(chromosome))
+    current_pos = chromosome[queen]
+    min_conflict = len(chromosome)
+    min_conflict_pos = current_pos
+    for pos in positions:
+        if pos != current_pos:
+            chromosome[queen] = pos
+            conflicts = sum(1 for i in range(len(chromosome)) if i != queen and (chromosome[i] == pos or abs(chromosome[i] - pos) == abs(i - queen)))
+            if conflicts < min_conflict:
+                min_conflict = conflicts
+                min_conflict_pos = pos
+    chromosome[queen] = current_pos  
+    return min_conflict_pos
 # Main function implementing the Genetic Algorithm for solving the N-Queens problem
 def genetic_algorithm(n, population_size, max_generations, crossover_rate, mutation_rate, initial_state=None, runs=1):
     best_solution_overall = None
@@ -82,7 +118,7 @@ def genetic_algorithm(n, population_size, max_generations, crossover_rate, mutat
         for generation in range(max_generations):
             # Apply local search to each chromosome in the population
             population = [local_search(chromosome) for chromosome in population]
-            
+            population = [repair(chromosome) for chromosome in population]
             fitnesses = [fitness(chromosome) for chromosome in population]
             # Ensure there are no zero or negative fitness values
             if all(f <= 0 for f in fitnesses):
@@ -104,9 +140,7 @@ def genetic_algorithm(n, population_size, max_generations, crossover_rate, mutat
 
             new_population = []
             while len(new_population) < population_size:
-                # Ensure selection is possible
                 if sum(fitnesses) == 0:
-                    # Adjust the fitnesses to allow selection
                     fitnesses = [f + 1 for f in fitnesses]
                 parent1, parent2 = select_parents(population, fitnesses)
                 child1, child2 = crossover(parent1, parent2, crossover_rate)
@@ -180,7 +214,7 @@ if __name__ == "__main__":
         else:
             print("Invalid choice. Please enter 1, 2, 3, or 4.")
 
-    runs = int(input("How many times would you like to run the algorithm? "))
+    runs = int(input("How many times would you like to run the algorithm? The number runs increase the chance of getting solutions"))
     start_time = time.time()
     best_solution = genetic_algorithm(n, **params, initial_state=initial_positions, runs=runs)
     elapsed_time = time.time() - start_time
