@@ -62,7 +62,8 @@ def local_search(solution, n):
 
 def site_abandonment(solutions, costs, threshold):
     """Abandon sites that have not improved past a certain threshold"""
-    return [solution for solution, cost in zip(solutions, costs) if cost <= threshold]
+    return [(solution, cost) for solution, cost in zip(solutions, costs) if cost <= threshold]
+
 
 def neighbourhood_shrinking(solution, n, ngh):
     """Reduce the neighborhood size to intensify the search"""
@@ -90,7 +91,7 @@ def bees_algorithm(n, num_scouts, num_best_sites, num_bees_best_sites, num_other
     best_solution = None
     best_cost = float('inf')
     some_interval = 10
-    some_threshold = 2
+    some_threshold = 2  # This threshold could be a parameter or dynamically adjusted
     no_improvement_runs = 0
     max_no_improvement_runs = stlim
 
@@ -109,22 +110,40 @@ def bees_algorithm(n, num_scouts, num_best_sites, num_bees_best_sites, num_other
                     best_sites[i] = (improved_solution, improved_cost)
                     solution_cost = improved_cost
 
-        # Early Termination
-        current_best_solution, current_best_cost = min(best_sites, key=lambda x: x[1])
-        if current_best_cost < best_cost:
-            best_solution, best_cost = current_best_solution, current_best_cost
-            no_improvement_runs = 0
+        # Abandon sites that have not improved past the threshold
+        best_sites = site_abandonment([site for site, cost in best_sites], [cost for site, cost in best_sites], some_threshold)
+
+        # Check for early termination
+        if best_sites:
+            current_best_solution, current_best_cost = min(best_sites, key=lambda x: x[1])
+            if current_best_cost < best_cost:
+                best_solution, best_cost = current_best_solution, current_best_cost
+                no_improvement_runs = 0
+            else:
+                no_improvement_runs += 1
+                if no_improvement_runs >= max_no_improvement_runs:
+                    break
         else:
-            no_improvement_runs += 1
-            if no_improvement_runs >= max_no_improvement_runs:
-                break
+            # If all sites are abandoned, then regenerate the scout solutions
+            scout_solutions = global_search(num_scouts, n)
+            continue
 
         # Dynamic Neighborhood Shrinkage
         if iteration % some_interval == 0 and iteration > 0:
             for i in range(len(scout_solutions)):
                 scout_solutions[i] = neighbourhood_shrinking(scout_solutions[i], n, ngh)
 
+        # Replace the abandoned sites with new random scouts
+        while len(best_sites) < num_best_sites:
+            new_scout = heuristic_initial_positions(n)
+            new_cost = cost(new_scout)
+            best_sites.append((new_scout, new_cost))
+
+        # Update the scout solutions with the best sites
+        scout_solutions = [solution for solution, cost in best_sites]
+
     return best_solution
+
 
 def is_solution_valid(position):
     n = len(position)
