@@ -6,7 +6,7 @@ import time
 GA_PARAMETER_SETS = {
     1: {"population_size": 50, "max_generations": 500, "crossover_rate": 0.9, "mutation_rate": 0.2},
     2: {"population_size": 100, "max_generations": 600, "crossover_rate": 0.8, "mutation_rate": 0.25},
-    3: {"population_size": 150, "max_generations": 1500, "crossover_rate": 0.7, "mutation_rate": 0.3}
+    3: {"population_size": 150, "max_generations": 700, "crossover_rate": 0.7, "mutation_rate": 0.3}
 }
 
 # Function to calculate the fitness (number of non-attacking pairs of queens)
