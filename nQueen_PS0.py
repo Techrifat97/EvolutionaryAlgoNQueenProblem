@@ -1,3 +1,4 @@
+"""@author: rifat_pc"""
 import numpy as np
 from multiprocessing import Pool, cpu_count
 import time
@@ -265,6 +266,7 @@ if __name__ == "__main__":
                 print("Invalid input. Please enter the correct type of value.")
         else:
             print("Invalid choice. Please enter 1, 2, 3, or 4.")
+    print("Wait for the solution......")
     # Run PSO and measure time taken
     start_time = time.time()
     solutions = PSO(num_particles, n, num_iterations, w, c1, c2, num_runs, initial_position)
@@ -277,4 +279,4 @@ if __name__ == "__main__":
         print("Solution:", np.array(sol) + 1)  # Adjust for 1-based indexing
         
     print(f"\nNumber of unique solutions found: {len(unique_solutions)}")
-    print(f"Total time taken: {(end_time - start_time)/60:.2f} minutes")
+    print(f"Total time taken: {(end_time - start_time):.2f} seconds")
