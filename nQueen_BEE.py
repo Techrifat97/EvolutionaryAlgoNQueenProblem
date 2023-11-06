@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
     # Determine the number of algorithm runs
     num_runs = 50  # Default number of runs
-    choice = input("Do you want to specify the number of times you want the algorithm to run?\n"
+    choice = input("Do you want to specify the number of trails you want the algorithm to perform?\n"
                    "The higher the number, the chance of getting multiple solutions increases (yes/no): ").strip().lower()
     if choice == 'yes':
         num_runs = int(input("Enter the number of runs: "))
